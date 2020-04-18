@@ -79,11 +79,11 @@ class RegenerativePokemon(Pokemon):
 
 class Trainer:
   
-  def __init__(self, name, pokemons, poisons=3):
+  def __init__(self, name, pokemons, potions=3):
     self.name = name
     self.pokemons = pokemons
     self.active_pokemon = None
-    self.poisons = poisons
+    self.potions = potions
   
   def __repr__(self):
     return self.name
@@ -93,7 +93,7 @@ class Trainer:
     for pokemon in self.pokemons:
       pokemon.info()
     self.show_active()
-    print(f"Poisons: {self.poisons}")
+    print(f"Potions: {self.potions}")
   
   def show_active(self):
     if self.active_pokemon != None:
@@ -119,21 +119,21 @@ class Trainer:
       print(f"{goal.pokemons[goal.active_pokemon].name} dies")
       goal.activate()
   
-  def use_poison(self, pokemon):
-      print(f"{self.name} uses poison on {pokemon.name}")
+  def use_potion(self, pokemon):
+      print(f"{self.name} uses potion on {pokemon.name}")
       pokemon.gain_health(100)
-      self.poisons -= 1
+      self.potions -= 1
 
 def battle(trainer_1, trainer_2):
   trainer_1.activate()
   trainer_2.activate()
   print("")
-  full_commands_list = ("0 - Info", "1 - Change active pokemon", "2 - Fight", "3 - Use healing poison", "4 - Exit")
+  full_commands_list = ("0 - Info", "1 - Change active pokemon", "2 - Fight", "3 - Use healing potion", "4 - Exit")
   full_choices = ('0', '1', '2', '3', '4')
   while True:
     commands_list = list(full_commands_list)
     choices = list(full_choices)
-    if trainer_1.poisons == 0:
+    if trainer_1.potions == 0:
       commands_list.pop(3)
       choices.pop(3)
     print("Commands:")
@@ -184,7 +184,7 @@ def battle(trainer_1, trainer_2):
         pokemon.regenerate()
       trainer_1, trainer_2 = [trainer_2, trainer_1]
       print("")
-    # 3 - Use healing poison
+    # 3 - Use healing potion
     elif command == 3:
       print("")
       dict = {}
@@ -199,7 +199,7 @@ def battle(trainer_1, trainer_2):
         choice = input("Choose Pokemon's number: ")
         try:
           if choice in dict:
-            trainer_1.use_poison(trainer_1.pokemons[dict[choice]])
+            trainer_1.use_potion(trainer_1.pokemons[dict[choice]])
             chosen = True
           else:
             raise Error
