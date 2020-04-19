@@ -1,5 +1,5 @@
 class Pokemon:
-  
+
   def __init__(self, name, element, level):
     self.name = name
     self.element = element
@@ -9,60 +9,58 @@ class Pokemon:
     self.base_defense = 100
     self.regenerative = False
     self.start()
-  
+
   def __repr__(self):
     return self.name
-  
+
   def start(self):
     self.set_stats(self.level)
     self.current_health = self.max_health
-  
+
   def set_stats(self, level):
     self.max_health = int(self.base_max_health*(1 + level)/2)
     self.attack = int(self.base_attack*(1 + level)/2)
     self.defense = int(self.base_defense*(1 + level)/2)
-  
+
   def info(self):
     plus_healer = lambda healer_status: ", regenerative" if healer_status == True else ""
     print(f"   {self.name}: {self.element}, level {self.level}\nHealth: {int(self.current_health)} \
-(of {int(self.max_health)})"+plus_healer(self.regenerative)+f"\nAttack: {int(self.attack)}\nDefense: {int(self.defense)}")
-  
+(of {int(self.max_health)}){plus_healer(self.regenerative)}\nAttack: {int(self.attack)}\nDefense: {int(self.defense)}")
+
   def lose_health(self, lose):
-    if self.current_health < lose:
-      lose = self.current_health
+    lose = min(lose, self.current_health)
     self.current_health -= lose
     print(f"{self.name} loses {lose} of health")
-  
+
   def gain_health(self, gain):
-    if self.max_health - self.current_health < gain:
-      gain = self.max_health - self.current_health
+    gain = min(gain, self.max_health - self.current_health)
     self.current_health += gain
     print(f"{self.name} gains {gain} of health")
-  
+
   def regenerate(self):
-    if self.regenerative == True and self.current_health > 0 and self.current_health < self.max_health:
+    if self.regenerative == True and 0 < self.current_health < self.max_health:
       print(f"{self.name} regenerates")
       self.gain_health(int(self.max_health*0.15))
-  
+
   def fight(self, goal):
     elements_triangle = {'Fire': 0, 'Water': 1, 'Grass': 2}
     attack_type = (elements_triangle[self.element] - elements_triangle[goal.element]) % 3
     attack_type_koef = {0: 1, 1: 3/2, 2: 2/3}
-    attack_type_description = {0: "", 1: f" with element bonus: {self.element} againts {goal.element}",\
-                               2: f" with element penalty: {self.element} againts {goal.element}"}
+    attack_type_description = {0: "", 1: f" with element bonus: {self.element} against {goal.element}",\
+                               2: f" with element penalty: {self.element} against {goal.element}"}
     attack = int(self.attack/(1 + goal.defense/self.attack)*attack_type_koef[attack_type])
     print(f"{self.name} attacks {goal.name}"+attack_type_description[attack_type])
     goal.lose_health(attack)
 
 class AttackPokemon(Pokemon):
-  
+
   def __init__(self, name, element, level):
     super().__init__(name, element, level)
     self.base_attack = 150
     self.start()
 
 class DefensePokemon(Pokemon):
-  
+
   def __init__(self, name, element, level):
     super().__init__(name, element, level)
     self.base_max_health = 125
@@ -70,7 +68,7 @@ class DefensePokemon(Pokemon):
     self.start()
 
 class RegenerativePokemon(Pokemon):
-  
+
   def __init__(self, name, element, level):
     super().__init__(name, element, level)
     self.base_max_health = 150
@@ -78,29 +76,29 @@ class RegenerativePokemon(Pokemon):
     self.start()
 
 class Trainer:
-  
+
   def __init__(self, name, pokemons, potions=3):
     self.name = name
     self.pokemons = pokemons
     self.active_pokemon = None
     self.potions = potions
-  
+
   def __repr__(self):
     return self.name
-  
+
   def info(self):
     print(f"{self.name} has {len(self.pokemons)} Pokemon:")
     for pokemon in self.pokemons:
       pokemon.info()
     self.show_active()
     print(f"Potions: {self.potions}")
-  
+
   def show_active(self):
     if self.active_pokemon != None:
       print(f"{self.name}'s active Pokemon is {self.pokemons[self.active_pokemon]}")
     else:
       print(f"{self.name} has no active Pokemon")
-  
+
   def activate(self, number=None):
     if number == None:
       self.active_pokemon = None
@@ -111,14 +109,14 @@ class Trainer:
     else:
       self.active_pokemon = number
     self.show_active()
-  
+
   def fight(self, goal):
     print(f"{self.name} attacks {goal.name}")
     self.pokemons[self.active_pokemon].fight(goal.pokemons[goal.active_pokemon])
     if goal.pokemons[goal.active_pokemon].current_health == 0:
       print(f"{goal.pokemons[goal.active_pokemon].name} dies")
       goal.activate()
-  
+
   def use_potion(self, pokemon):
       print(f"{self.name} uses potion on {pokemon.name}")
       pokemon.gain_health(100)
@@ -128,7 +126,7 @@ def battle(trainer_1, trainer_2):
   trainer_1.activate()
   trainer_2.activate()
   print("")
-  full_commands_list = ("0 - Info", "1 - Change active pokemon", "2 - Fight", "3 - Use healing potion", "4 - Exit")
+  full_commands_list = ("0 - Info", "1 - Change active Pokemon", "2 - Fight", "3 - Use healing potion", "4 - Exit")
   full_choices = ('0', '1', '2', '3', '4')
   while True:
     commands_list = list(full_commands_list)
@@ -154,24 +152,7 @@ def battle(trainer_1, trainer_2):
     # 1 - Change active pokemon
     elif command == 1:
       print("")
-      dict = {}
-      num = 0
-      for i in range(len(trainer_1.pokemons)):
-        if trainer_1.pokemons[i].current_health > 0:
-          dict[str(num)] = i
-          print(f"{num}: {trainer_1.pokemons[i].name}")
-          num +=1
-      chosen = False
-      while chosen == False:
-        choice = input("Choose Pokemon's number: ")
-        try:
-          if choice in dict:
-            trainer_1.activate(dict[choice])
-            chosen = True
-          else:
-            raise Error
-        except:
-          continue
+      trainer_1.activate(choose_alive_pokemon(trainer_1))
       print("")
     # 2 - Fight
     elif command == 2:
@@ -187,28 +168,31 @@ def battle(trainer_1, trainer_2):
     # 3 - Use healing potion
     elif command == 3:
       print("")
-      dict = {}
-      num = 0
-      for i in range(len(trainer_1.pokemons)):
-        if trainer_1.pokemons[i].current_health > 0:
-          dict[str(num)] = i
-          print(f"{num}: {trainer_1.pokemons[i].name}")
-          num +=1
-      chosen = False
-      while chosen == False:
-        choice = input("Choose Pokemon's number: ")
-        try:
-          if choice in dict:
-            trainer_1.use_potion(trainer_1.pokemons[dict[choice]])
-            chosen = True
-          else:
-            raise Error
-        except:
-          continue
+      trainer_1.use_potion(trainer_1.pokemons[choose_alive_pokemon(trainer_1)])
       print("")
     # 4 - Exit
     elif command == 4:
       break
+
+def choose_alive_pokemon(trainer):
+  dict = {}
+  num = 0
+  for i in range(len(trainer.pokemons)):
+    if trainer.pokemons[i].current_health > 0:
+      dict[str(num)] = i
+      print(f"{num}: {trainer.pokemons[i].name}")
+      num +=1
+  chosen = False
+  while chosen == False:
+    choice = input("Choose Pokemon's number: ")
+    try:
+      if choice in dict:
+        chosen = True
+      else:
+        raise Error
+    except:
+      continue
+  return dict[choice]
 
 dragon = AttackPokemon('Fire Dragon', 'Fire', 3)
 kraken = AttackPokemon('Kraken', 'Water', 2)
