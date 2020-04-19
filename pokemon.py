@@ -122,77 +122,63 @@ class Trainer:
       pokemon.gain_health(100)
       self.potions -= 1
 
+def game(all_trainers):
+  trainers = choose_trainers(all_trainers)
+  battle(trainers[0], trainers[1])
+
+def choose_trainers(all_trainers):
+  trainers = [None, None]
+  order_names = ["first", "second"]
+  for trainer_num in range(2):
+    choice = choose_from_list([trainer.name for trainer in all_trainers], "Trainers",\
+                              f"Choose {order_names[trainer_num]} Trainer's number: ")
+    trainers[trainer_num] = all_trainers.pop(choice)
+    print(f"{order_names[trainer_num].title()} trainer is {trainers[trainer_num].name}")
+    trainers[trainer_num].activate()
+  return trainers
+
 def battle(trainer_1, trainer_2):
-  trainer_1.activate()
-  trainer_2.activate()
-  print("")
-  full_commands_list = ("0 - Info", "1 - Change active Pokemon", "2 - Fight", "3 - Use healing potion", "4 - Exit")
-  full_choices = ('0', '1', '2', '3', '4')
+  full_commands_list = ("Info", "Change active Pokemon", "Fight", "Use healing potion", "Exit")
   while True:
     commands_list = list(full_commands_list)
-    choices = list(full_choices)
     if trainer_1.potions == 0:
-      commands_list.pop(3)
-      choices.pop(3)
-    print("Commands:")
-    for i in commands_list:
-        print(i)
-    command = None
-    while command == None:
-      choice = input(f"{trainer_1.name}'s turn: ")
-      if choice in choices:
-          command = int(choice)
-    # 0 - Info
-    if command == 0:
-      print("")
+      commands_list.pop(full_commands_list.index("Use healing potion"))
+    command_index = choose_from_list(commands_list, "Commands", f"{trainer_1.name}'s turn: ")
+    if commands_list[command_index] == "Info":
       trainer_1.info()
       print("")
       trainer_2.info()
-      print("")
-    # 1 - Change active pokemon
-    elif command == 1:
-      print("")
+    elif commands_list[command_index] == "Change active Pokemon":
+      print(f"{trainer_1.name} changes active Pokemon")
       trainer_1.activate(choose_alive_pokemon(trainer_1))
-      print("")
-    # 2 - Fight
-    elif command == 2:
-      print("")
+    elif commands_list[command_index] == "Fight":
       trainer_1.fight(trainer_2)
       if trainer_2.active_pokemon == None:
-        print(f"{trainer_1.name} won!")
+        print(f"{trainer_1.name} wins!")
         break
       for pokemon in trainer_2.pokemons:
         pokemon.regenerate()
       trainer_1, trainer_2 = [trainer_2, trainer_1]
-      print("")
-    # 3 - Use healing potion
-    elif command == 3:
-      print("")
+    elif commands_list[command_index] == "Use healing potion":
+      print(f"{trainer_1.name} uses healing potion")
       trainer_1.use_potion(trainer_1.pokemons[choose_alive_pokemon(trainer_1)])
-      print("")
-    # 4 - Exit
-    elif command == 4:
+    elif commands_list[command_index] == "Exit":
       break
 
 def choose_alive_pokemon(trainer):
-  dict = {}
-  num = 0
-  for i in range(len(trainer.pokemons)):
-    if trainer.pokemons[i].current_health > 0:
-      dict[str(num)] = i
-      print(f"{num}: {trainer.pokemons[i].name}")
-      num +=1
-  chosen = False
-  while chosen == False:
-    choice = input("Choose Pokemon's number: ")
-    try:
-      if choice in dict:
-        chosen = True
-      else:
-        raise Error
-    except:
-      continue
-  return dict[choice]
+  alive_pokemons_index = [i for i in range(len(trainer.pokemons)) if trainer.pokemons[i].current_health > 0]
+  alive_pokemons_names = [trainer.pokemons[i].name for i in alive_pokemons_index]
+  return alive_pokemons_index[choose_from_list(alive_pokemons_names, f"{trainer.name}'s Pokemons", "Choose Pokemon's number: ")]
+
+def choose_from_list(list, title, text):
+  print(f"\n{title}:")
+  for i in range(len(list)):
+    print(f"{i} - {list[i]}")
+  while True:
+    choice = input(text)
+    if choice in [str(i) for i in range(len(list))]:
+      print("")
+      return int(choice)
 
 dragon = AttackPokemon('Fire Dragon', 'Fire', 3)
 kraken = AttackPokemon('Kraken', 'Water', 2)
@@ -203,33 +189,9 @@ firefly = DefensePokemon('Firefly', 'Fire', 1)
 tree = RegenerativePokemon('Mother Tree', 'Grass', 3)
 phoenix = RegenerativePokemon('Phoenix', 'Fire', 2)
 blob = RegenerativePokemon('Blob', 'Water', 1)
-
 jaba = Trainer('Jaba Bo', [dragon, creepers, blob])
 alchemist = Trainer('Alchemist', [whirlpool, phoenix, fairy])
 witch = Trainer('Forest Witch', [tree, kraken, firefly])
 all_trainers = [jaba, alchemist, witch]
 
-def choose_trainers():
-  trainers = [None, None]
-  order_names = ["first", "second"]
-  for trainer_num in range(2):
-    print("Trainers:")
-    for i in range(len(all_trainers)):
-      print(f"{i}: {all_trainers[i].name}")
-    while trainers[trainer_num] == None:
-      try:
-        chosen_num = int(input(f"Choose {order_names[trainer_num]} Trainer's number: "))
-        if chosen_num in range(len(all_trainers)):
-          trainers[trainer_num] = all_trainers.pop(chosen_num)
-        else:
-          raise Error
-      except:
-        continue
-    print("")
-  return trainers
-
-def game():
-  trainers = choose_trainers()
-  battle(trainers[0], trainers[1])
-
-game()
+game(all_trainers)
