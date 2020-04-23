@@ -30,12 +30,12 @@ class Pokemon:
   def lose_health(self, lose):
     lose = min(lose, self.current_health)
     self.current_health -= lose
-    print(f"{self.name} loses {lose} of health")
+    print(f"{self.name} loses {lose} of health and has {self.current_health} of health now")
 
   def gain_health(self, gain):
     gain = min(gain, self.max_health - self.current_health)
     self.current_health += gain
-    print(f"{self.name} gains {gain} of health")
+    print(f"{self.name} gains {gain} of health and has {self.current_health} of health now")
 
   def regenerate(self):
     if self.regenerative == True and 0 < self.current_health < self.max_health:
