@@ -23,9 +23,9 @@ class Pokemon:
     self.defense = int(self.base_defense*(1 + level)/2)
 
   def info(self):
-    plus_healer = lambda healer_status: ", regenerative" if healer_status == True else ""
-    print(f"   {self.name}: {self.element}, level {self.level}\nHealth: {int(self.current_health)} \
-(of {int(self.max_health)}){plus_healer(self.regenerative)}\nAttack: {int(self.attack)}\nDefense: {int(self.defense)}")
+    plus_healer = lambda regenerative_status: ", regenerative" if regenerative_status == True else ""
+    print(f"   {self.name}: {self.element}, level {self.level}\nHealth: {self.current_health} (of {self.max_health})\
+{plus_healer(self.regenerative)}\nAttack: {self.attack}\nDefense: {self.defense}")
 
   def lose_health(self, lose):
     lose = min(lose, self.current_health)
@@ -87,7 +87,7 @@ class Trainer:
     return self.name
 
   def info(self):
-    print(f"{self.name} has {len(self.pokemons)} Pokemon:")
+    print(f"{self.name} has {len(self.pokemons)} Pokemons:")
     for pokemon in self.pokemons:
       pokemon.info()
     self.show_active()
