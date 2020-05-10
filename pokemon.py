@@ -18,14 +18,16 @@ class Pokemon:
     self.current_health = self.max_health
 
   def set_stats(self, level):
-    self.max_health = int(self.base_max_health*(1 + level)/2)
-    self.attack = int(self.base_attack*(1 + level)/2)
-    self.defense = int(self.base_defense*(1 + level)/2)
+    self.max_health = int(self.base_max_health*(1+level)/2)
+    self.attack = int(self.base_attack*(1+level)/2)
+    self.defense = int(self.base_defense*(1+level)/2)
 
   def info(self):
-    plus_healer = lambda regenerative_status: ", regenerative" if regenerative_status == True else ""
-    print(f"   {self.name}: {self.element}, level {self.level}\nHealth: {self.current_health} (of {self.max_health})\
-{plus_healer(self.regenerative)}\nAttack: {self.attack}\nDefense: {self.defense}")
+    plus_status = lambda reg_status: ", regenerative" if reg_status == True else ""
+    print(f"\t{self.name}: {self.element}, level {self.level}")
+    print(f"Health: {self.current_health} (of {self.max_health}){plus_status(self.regenerative)}")
+    print(f"Attack: {self.attack}")
+    print(f"Defense: {self.defense}")
 
   def lose_health(self, lose):
     lose = min(lose, self.current_health)
@@ -44,11 +46,12 @@ class Pokemon:
 
   def fight(self, goal):
     elements_triangle = {'Fire': 0, 'Water': 1, 'Grass': 2}
-    attack_type = (elements_triangle[self.element] - elements_triangle[goal.element]) % 3
+    attack_type = (elements_triangle[self.element]-elements_triangle[goal.element])%3
     attack_type_koef = {0: 1, 1: 3/2, 2: 2/3}
-    attack_type_description = {0: "", 1: f" with element bonus: {self.element} against {goal.element}",\
+    attack_type_description = {0: "",
+                               1: f" with element bonus: {self.element} against {goal.element}",
                                2: f" with element penalty: {self.element} against {goal.element}"}
-    attack = int(self.attack/(1 + goal.defense/self.attack)*attack_type_koef[attack_type])
+    attack = int(self.attack/(1+goal.defense/self.attack)*attack_type_koef[attack_type])
     print(f"{self.name} attacks {goal.name}"+attack_type_description[attack_type])
     goal.lose_health(attack)
 
@@ -87,20 +90,20 @@ class Trainer:
     return self.name
 
   def info(self):
-    print(f"{self.name} has {len(self.pokemons)} Pokemons:")
+    print(f"{self.name} has {len(self.pokemons)} Pokemon:")
     for pokemon in self.pokemons:
       pokemon.info()
     self.show_active()
     print(f"Potions: {self.potions}")
 
   def show_active(self):
-    if self.active_pokemon != None:
-      print(f"{self.name}'s active Pokemon is {self.pokemons[self.active_pokemon]}")
-    else:
+    if self.active_pokemon is None:
       print(f"{self.name} has no active Pokemon")
+    else:
+      print(f"{self.name}'s active Pokemon is {self.pokemons[self.active_pokemon]}")
 
   def activate(self, number=None):
-    if number == None:
+    if number is None:
       self.active_pokemon = None
       for i in range(len(self.pokemons)):
         if self.pokemons[i].current_health > 0:
@@ -118,9 +121,9 @@ class Trainer:
       goal.activate()
 
   def use_potion(self, pokemon):
+      self.potions -= 1
       print(f"{self.name} uses potion on {pokemon.name}")
       pokemon.gain_health(100)
-      self.potions -= 1
 
 def game(all_trainers):
   trainers = choose_trainers(all_trainers)
@@ -130,19 +133,19 @@ def choose_trainers(all_trainers):
   trainers = [None, None]
   order_names = ["first", "second"]
   for trainer_num in range(2):
-    choice = choose_from_list([trainer.name for trainer in all_trainers], "Trainers",\
+    choice = choose_from_list([trainer.name for trainer in all_trainers], "Trainers",
                               f"Choose {order_names[trainer_num]} Trainer's number: ")
     trainers[trainer_num] = all_trainers.pop(choice)
-    print(f"{order_names[trainer_num].title()} trainer is {trainers[trainer_num].name}")
+    print(f"{order_names[trainer_num].title()} Trainer is {trainers[trainer_num].name}")
     trainers[trainer_num].activate()
   return trainers
 
 def battle(trainer_1, trainer_2):
-  full_commands_list = ("Info", "Change active Pokemon", "Fight", "Use healing potion", "Exit")
+  full_commands_list = ["Info", "Change active Pokemon", "Fight", "Use healing potion", "Exit"]
   while True:
     commands_list = list(full_commands_list)
     if trainer_1.potions == 0:
-      commands_list.pop(full_commands_list.index("Use healing potion"))
+      commands_list.remove("Use healing potion")
     command_index = choose_from_list(commands_list, "Commands", f"{trainer_1.name}'s turn: ")
     if commands_list[command_index] == "Info":
       trainer_1.info()
@@ -153,7 +156,7 @@ def battle(trainer_1, trainer_2):
       trainer_1.activate(choose_alive_pokemon(trainer_1))
     elif commands_list[command_index] == "Fight":
       trainer_1.fight(trainer_2)
-      if trainer_2.active_pokemon == None:
+      if trainer_2.active_pokemon is None:
         print(f"{trainer_1.name} wins!")
         break
       for pokemon in trainer_2.pokemons:
@@ -166,9 +169,10 @@ def battle(trainer_1, trainer_2):
       break
 
 def choose_alive_pokemon(trainer):
-  alive_pokemons_index = [i for i in range(len(trainer.pokemons)) if trainer.pokemons[i].current_health > 0]
-  alive_pokemons_names = [trainer.pokemons[i].name for i in alive_pokemons_index]
-  return alive_pokemons_index[choose_from_list(alive_pokemons_names, f"{trainer.name}'s Pokemons", "Choose Pokemon's number: ")]
+  index_list = [i for i in range(len(trainer.pokemons)) if trainer.pokemons[i].current_health > 0]
+  names_list = [trainer.pokemons[i].name for i in index_list]
+  choice = choose_from_list(names_list, f"{trainer.name}'s Pokemon", "Choose Pokemon's number: ")
+  return index_list[choice]
 
 def choose_from_list(list, title, text):
   print(f"\n{title}:")
