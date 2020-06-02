@@ -125,7 +125,7 @@ def game(all_trainers):
       commands_list = list(full_commands_list)
       if trainer_1.potions == 0:
         commands_list.remove("Use healing potion")
-      command = choose_menu(commands_list, f"{trainer_1}'s Turn: ")
+      command = choose_menu(commands_list, f"{trainer_1}'s Turn:")
 
     # Info
     if command == "Info":
