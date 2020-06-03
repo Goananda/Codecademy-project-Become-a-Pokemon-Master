@@ -13,10 +13,10 @@ class Pokemon:
     return self.name
 
   def set_stats(self):
-    self.max_health = int(self.base_max_health*(1+self.level)/2)
+    self.max_health = int(self.base_max_health*(2+self.level)/3)
     self.current_health = self.max_health
-    self.attack = int(self.base_attack*(1+self.level)/2)
-    self.defense = int(self.base_defense*(1+self.level)/2)
+    self.attack = int(self.base_attack*(2+self.level)/3)
+    self.defense = int(self.base_defense*(2+self.level)/3)
 
   def info(self):
     plus_status = lambda reg_status: ", regenerative" if reg_status == True else ""
@@ -38,7 +38,7 @@ class Pokemon:
   def regenerate(self):
     if self.current_health < self.max_health:
       print(f"{self} regenerates")
-      self.gain_health(int(self.max_health*0.1))
+      self.gain_health(int(self.max_health*0.2))
 
   def fight(self, goal):
     fight_stats = self.fight_stats(goal)
@@ -65,8 +65,7 @@ class DefensePokemon(Pokemon):
 
   def __init__(self, name, element, level):
     super().__init__(name, element, level)
-    self.base_defense = int(self.base_defense*1.1)
-    self.base_max_health = int(self.base_max_health*1.1)
+    self.base_defense = int(self.base_defense*1.2)
 
 class RegenerativePokemon(Pokemon):
 
@@ -110,87 +109,90 @@ class Trainer:
       print(f"{self} uses potion on {pokemon}")
       pokemon.gain_health(100)
 
-def game(all_trainers):
-  game_mode = choose_menu(["Player vs Player", "Player vs Computer"], "Game mode:")
-  game_mode_titles = {"Player vs Player": ["First Player", "Second Player"],
-                      "Player vs Computer": ["Player", "Computer"]}
-  trainer_1, trainer_2 = choose_trainers(all_trainers, game_mode_titles[game_mode])
-  computer_turn = False
+class Game:
+
   full_commands_list = ["Info", "Change active Pokemon", "Fight", "Use healing potion", "Exit"]
 
-  while True:
-    if computer_turn:
-      command = computer_turn_commands.pop()
-    else:
-      commands_list = list(full_commands_list)
-      if trainer_1.potions == 0:
+  def __init__(self, all_trainers):
+    self.all_trainers = all_trainers
+    self.trainers = []
+    self.modes = []
+    self.turn = 0
+    self.comp_commands = []
+
+  def start(self):
+    self.choose_trainers()
+    while True:
+      self.act = self.trainers[self.turn]
+      self.pas = self.trainers[(self.turn+1)%2]
+      if (self.modes[self.turn] == "Computer" and len(self.comp_commands) == 0):
+        print(f"\n{self.act}'s Turn:")
+        self.get_comp_commands()
+      commands_list = list(self.full_commands_list)
+      if self.act.potions == 0:
         commands_list.remove("Use healing potion")
-      command = choose_menu(commands_list, f"{trainer_1}'s Turn:")
+      self.get_command(commands_list, f"{self.act}'s Turn:")
 
-    # Info
-    if command == "Info":
-      trainer_1.info()
-      trainer_2.info()
+      # Info
+      if self.command == "Info":
+        for trainer in self.trainers:
+          trainer.info()
 
-    # Change active Pokemon
-    elif command == "Change active Pokemon":
-      if computer_turn:
-        trainer_1.active = computer_turn_commands.pop()
-      else:
-        trainer_1.active = choose_menu(trainer_1.pokemons, f"{trainer_1} changes active Pokemon:")
-      trainer_1.show_active()
+      # Change active Pokemon
+      elif self.command == "Change active Pokemon":
+        self.get_command(self.act.pokemons, f"{self.act} changes active Pokemon:")
+        self.act.active = self.command
+        self.act.show_active()
 
-    # Fight
-    elif command == "Fight":
-      trainer_1.fight(trainer_2)
-      if len(trainer_2.pokemons) == 0:
-        print(f"{trainer_1} wins!")
+      # Fight
+      elif self.command == "Fight":
+        self.act.fight(self.pas)
+        if len(self.pas.pokemons) == 0:
+          print(f"{self.act} wins!")
+          break
+        for pokemon in self.pas.pokemons:
+          if pokemon.regenerative:
+            pokemon.regenerate()
+        self.turn = (self.turn+1)%2
+
+      # Use healing potion
+      elif self.command == "Use healing potion":
+        self.get_command(self.act.pokemons, f"{self.act} uses healing potion:")
+        self.act.use_potion(self.command)
+
+      # Exit
+      elif self.command == "Exit":
         break
-      for pokemon in trainer_2.pokemons:
-        if pokemon.regenerative:
-          pokemon.regenerate()
-      trainer_1, trainer_2 = [trainer_2, trainer_1]
-      if game_mode == "Player vs Computer":
-        computer_turn = not computer_turn
-        if computer_turn:
-          print(f"\n{trainer_1}'s Turn: ")
-          computer_turn_commands = get_computer_turn_commands(trainer_1, trainer_2)
 
-    # Use healing potion
-    elif command == "Use healing potion":
-      if computer_turn:
-        trainer_1.use_potion(computer_turn_commands.pop())
-      else:
-        trainer_1.use_potion(choose_menu(trainer_1.pokemons, f"{trainer_1} uses healing potion:"))
+  def choose_trainers(self):
+    titles = ["First", "Second"]
+    for num in range(2):
+      mode = choose_menu(["Player", "Computer"], f"{titles[num]} Trainer mode:")
+      trainer = choose_menu(self.all_trainers, f"{titles[num]} Trainer:")
+      self.all_trainers.remove(trainer)
+      self.trainers.append(trainer)
+      self.modes.append(mode)
+      for pokemon in trainer.pokemons:
+        pokemon.set_stats()
 
-    # Exit
-    elif command == "Exit":
-      break
+  def get_command(self, lst, title):
+    if self.modes[self.turn] == "Player":
+      self.command = choose_menu(lst, title)
+    else:
+      self.command = self.comp_commands.pop()
 
-def get_computer_turn_commands(computer, player):
-  computer_turn_commands = ["Fight"]
-  best_attack = 0
-  for pokemon in computer.pokemons:
-    attack = pokemon.fight_stats(player.active)[0]
-    if attack > best_attack:
-      best_pokemon = pokemon
-      best_attack = attack
-  if (best_pokemon.max_health - best_pokemon.current_health >= 100) and (computer.potions > 0):
-    computer_turn_commands += [best_pokemon, "Use healing potion"]
-  if best_pokemon != computer.active:
-    computer_turn_commands += [best_pokemon, "Change active Pokemon"]
-  return computer_turn_commands
-
-def choose_trainers(all_trainers, titles):
-  trainers = [None, None]
-  for trainer_num in range(2):
-    choice = choose_menu(all_trainers, f"Choose {titles[trainer_num]} Trainer:")
-    for pokemon in choice.pokemons:
-      pokemon.set_stats()
-    print(f"{titles[trainer_num]} Trainer: {choice}")
-    trainers[trainer_num] = choice
-    all_trainers.remove(choice)
-  return trainers
+  def get_comp_commands(self):
+    self.comp_commands.append("Fight")
+    best_attack = 0
+    for pokemon in self.act.pokemons:
+      attack = pokemon.fight_stats(self.pas.active)[0]
+      if attack > best_attack:
+        best_pokemon = pokemon
+        best_attack = attack
+    if (best_pokemon.max_health - best_pokemon.current_health >= 100) and (self.act.potions > 0):
+      self.comp_commands += [best_pokemon, "Use healing potion"]
+    if best_pokemon != self.act.active:
+      self.comp_commands += [best_pokemon, "Change active Pokemon"]
 
 def choose_menu(lst, title):
     print(f"\n{title}")
@@ -215,4 +217,5 @@ alchemist = Trainer('Alchemist', [whirlpool, phoenix, fairy])
 witch = Trainer('Forest Witch', [tree, kraken, firefly])
 all_trainers = [jaba, alchemist, witch]
 
-game(all_trainers)
+game = Game(all_trainers)
+game.start()
