@@ -78,7 +78,7 @@ class Trainer:
   def __init__(self, name, pokemons, potions=3):
     self.name = name
     self.pokemons = pokemons
-    self.active = pokemons[0]
+    self.active = self.pokemons[0]
     self.potions = potions
 
   def __repr__(self):
@@ -99,7 +99,7 @@ class Trainer:
     self.active.fight(goal.active)
     if goal.active.current_health == 0:
       goal.pokemons.remove(goal.active)
-      print(f"{goal.active.name} dies")
+      print(f"{goal.active} dies")
       if len(goal.pokemons) > 0:
         goal.active = goal.pokemons[0]
         goal.show_active()
@@ -168,12 +168,12 @@ class Game:
     titles = ["First", "Second"]
     for num in range(2):
       mode = choose_menu(["Player", "Computer"], f"{titles[num]} Trainer mode:")
-      trainer = choose_menu(self.all_trainers, f"{titles[num]} Trainer:")
-      self.all_trainers.remove(trainer)
-      self.trainers.append(trainer)
       self.modes.append(mode)
+      trainer = choose_menu(self.all_trainers, f"{titles[num]} Trainer:")
+      self.trainers.append(trainer)
       for pokemon in trainer.pokemons:
         pokemon.set_stats()
+      self.all_trainers.remove(trainer)
 
   def get_command(self, lst, title):
     if self.modes[self.turn] == "Player":
