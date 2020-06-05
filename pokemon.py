@@ -117,17 +117,23 @@ class Game:
     self.all_trainers = all_trainers
     self.trainers = []
     self.modes = []
-    self.turn = 0
+    self.turn = 1
     self.comp_commands = []
+    self.set_turn = True
 
   def start(self):
     self.choose_trainers()
     while True:
-      self.act = self.trainers[self.turn]
-      self.pas = self.trainers[(self.turn+1)%2]
-      if (self.modes[self.turn] == "Computer" and len(self.comp_commands) == 0):
-        print(f"\n{self.act}'s Turn:")
-        self.get_comp_commands()
+
+      if self.set_turn:
+        self.turn = (self.turn+1)%2
+        self.act = self.trainers[self.turn]
+        self.pas = self.trainers[(self.turn+1)%2]
+        if self.modes[self.turn] == "Computer":
+          print(f"\n{self.act}'s Turn:")
+          self.get_comp_commands()
+        self.set_turn = False
+
       commands_list = list(self.full_commands_list)
       if self.act.potions == 0:
         commands_list.remove("Use healing potion")
@@ -153,7 +159,7 @@ class Game:
         for pokemon in self.pas.pokemons:
           if pokemon.regenerative:
             pokemon.regenerate()
-        self.turn = (self.turn+1)%2
+        self.set_turn = True
 
       # Use healing potion
       elif self.command == "Use healing potion":
