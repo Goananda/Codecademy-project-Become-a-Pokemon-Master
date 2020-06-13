@@ -41,9 +41,9 @@ class Pokemon:
       self.gain_health(int(self.max_health*0.2))
 
   def fight(self, goal):
-    fight_stats = self.fight_stats(goal)
-    print(f"{self} attacks {goal} {fight_stats[1]}")
-    goal.lose_health(fight_stats[0])
+    attack, description = self.fight_stats(goal)
+    print(f"{self} attacks {goal} {description}")
+    goal.lose_health(attack)
 
   def fight_stats(self, goal):
     elements_triangle = {'Fire': 0, 'Water': 1, 'Grass': 2}
@@ -53,7 +53,7 @@ class Pokemon:
     attack_type_description = {0: "",
                                1: f"with element bonus: {self.element} against {goal.element}",
                                2: f"with element penalty: {self.element} against {goal.element}"}
-    return (attack, attack_type_description[attack_type])
+    return attack, attack_type_description[attack_type]
 
 class AttackPokemon(Pokemon):
 
