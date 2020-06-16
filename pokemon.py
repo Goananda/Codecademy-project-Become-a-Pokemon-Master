@@ -13,10 +13,11 @@ class Pokemon:
     return self.name
 
   def set_stats(self):
-    self.max_health = int(self.base_max_health*(2+self.level)/3)
+    level_stat = lambda x: int(x*(2+self.level)/3)
+    self.max_health = level_stat(self.base_max_health)
     self.current_health = self.max_health
-    self.attack = int(self.base_attack*(2+self.level)/3)
-    self.defense = int(self.base_defense*(2+self.level)/3)
+    self.attack = level_stat(self.base_attack)
+    self.defense = level_stat(self.base_defense)
 
   def info(self):
     plus_status = lambda reg_status: ", regenerative" if reg_status == True else ""
@@ -126,9 +127,9 @@ class Game:
     while True:
 
       if self.set_turn:
-        self.turn = (self.turn+1)%2
+        self.pas = self.trainers[self.turn]
+        self.turn = 1 - self.turn
         self.act = self.trainers[self.turn]
-        self.pas = self.trainers[(self.turn+1)%2]
         if self.modes[self.turn] == "Computer":
           print(f"\n{self.act}'s Turn:")
           self.get_comp_commands()
