@@ -20,9 +20,9 @@ class Pokemon:
     self.defense = level_stat(self.base_defense)
 
   def info(self):
-    plus_status = lambda reg_status: ", regenerative" if reg_status == True else ""
     print(f"\t{self}: {self.element}, level {self.level}")
-    print(f"Health: {self.current_health} (of {self.max_health}){plus_status(self.regenerative)}")
+    reg_text = ", regenerative" if self.regenerative else ""
+    print(f"Health: {self.current_health} (of {self.max_health}){reg_text}")
     print(f"Attack: {self.attack}")
     print(f"Defense: {self.defense}")
 
