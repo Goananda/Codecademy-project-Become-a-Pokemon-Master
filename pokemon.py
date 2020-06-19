@@ -174,10 +174,8 @@ class Game:
   def choose_trainers(self):
     titles = ["First", "Second"]
     for num in range(2):
-      mode = choose_menu(["Player", "Computer"], f"{titles[num]} Trainer mode:")
-      self.modes.append(mode)
-      trainer = choose_menu(self.all_trainers, f"{titles[num]} Trainer:")
-      self.trainers.append(trainer)
+      self.modes.append(choose_menu(["Player", "Computer"], f"{titles[num]} Trainer mode:"))
+      self.trainers.append(trainer := choose_menu(self.all_trainers, f"{titles[num]} Trainer:"))
       for pokemon in trainer.pokemons:
         pokemon.set_stats()
       self.all_trainers.remove(trainer)
@@ -192,23 +190,20 @@ class Game:
     self.comp_commands.append("Fight")
     best_attack = 0
     for pokemon in self.act.pokemons:
-      attack = pokemon.fight_stats(self.pas.active)[0]
-      if attack > best_attack:
-        best_pokemon = pokemon
-        best_attack = attack
+      if (attack := pokemon.fight_stats(self.pas.active)[0]) > best_attack:
+        best_pokemon, best_attack = pokemon, attack
     if (best_pokemon.max_health - best_pokemon.current_health >= 100) and (self.act.potions > 0):
       self.comp_commands += [best_pokemon, "Use healing potion"]
     if best_pokemon != self.act.active:
       self.comp_commands += [best_pokemon, "Change active Pokemon"]
 
 def choose_menu(lst, title):
-    print(f"\n{title}")
-    for item in enumerate(lst):
-        print(f"{item[0]} - {item[1]}")
-    while True:
-        choice = input("Number of your choice: ")
-        if choice in map(str, range(len(lst))):
-            return lst[int(choice)]
+  print(f"\n{title}")
+  for item in enumerate(lst):
+    print(f"{item[0]} - {item[1]}")
+  while True:
+    if (choice := input("Number of your choice: ")) in map(str, range(len(lst))):
+      return lst[int(choice)]
 
 dragon = AttackPokemon('Fire Dragon', 'Fire', 3)
 kraken = AttackPokemon('Kraken', 'Water', 2)
